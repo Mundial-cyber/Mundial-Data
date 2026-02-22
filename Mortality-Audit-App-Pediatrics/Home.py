@@ -1,12 +1,12 @@
 import streamlit as st
 
-# Configure page
+
 st.set_page_config(page_title="👩‍⚕️👨‍⚕️Mortality Audit App", layout="wide")
 
-# Title
+
 st.title("🧾 Mortality Audit & Analysis App")
 
-# Introduction
+
 st.markdown("""
 Welcome to the **Mortality Audit App**🎉.
 
@@ -17,7 +17,7 @@ This tool helps you:
 4. Visualize trends and generate actionable insights
 """)
 
-# Instructions
+
 st.markdown("---")
 st.subheader("🧭 Navigation Guide")
 st.markdown("""
