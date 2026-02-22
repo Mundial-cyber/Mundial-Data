@@ -6,7 +6,7 @@ import plotly.express as px
 st.set_page_config(page_title="Step 4: Diagnosis & Age Analysis", layout="wide")
 st.title("Step 4: Admissions by Diagnosis & Mortalities By Age Group")
 
-# 🧠 Load datasets
+
 df = None
 if "df_previous" in st.session_state and "df_current" in st.session_state:
     df_prev = st.session_state["df_previous"].copy()
@@ -19,7 +19,7 @@ else:
     st.error("❌ No clean data found. Please complete Step 1 first.")
     st.stop()
 
-# 🧭 Detect outcome column
+
 outcome_col = None
 for col in ["outcome_norm", "outcome"]:
     if col in df.columns:
@@ -31,16 +31,14 @@ if outcome_col is None:
 
 df[outcome_col] = df[outcome_col].astype(str).str.lower()
 
-# 🧩 Ensure 'month' column exists and is string
+
 if "month" in df.columns:
     if isinstance(df["month"].iloc[0], pd.Period):
         df["month"] = df["month"].astype(str)
 else:
     df["month"] = "Unknown"
 
-# --------------------------------------------------
-# 🧒 Normalize Age (handle days, months, years)
-# --------------------------------------------------
+
 def compute_age_days(row):
     if pd.notna(row.get("age_days")):
         return row["age_days"]
@@ -52,9 +50,6 @@ def compute_age_days(row):
 
 df["age_days"] = df.apply(compute_age_days, axis=1)
 
-# --------------------------------------------------
-# 📊 Admissions by Primary Diagnosis
-# --------------------------------------------------
 st.markdown("### 📊 Admissions by Primary Diagnosis")
 if "primary_diagnosis" in df.columns:
     diag_counts = df["primary_diagnosis"].value_counts().reset_index()
@@ -74,16 +69,14 @@ else:
 
 st.markdown("---")
 
-# --------------------------------------------------
-# ⚰️ Mortalities by Age Group
-# --------------------------------------------------
+
 st.markdown("### ⚰️ Mortalities by Age Group")
 
 deaths_df = df[df[outcome_col] == "dead"].copy()
 if deaths_df.empty:
     st.info("No mortality records found.")
 else:
-    # Define age groups based on days
+   
     def age_group(days):
         if pd.isna(days): return "Unknown"
         if days < 30: return "<1 month"
@@ -116,7 +109,7 @@ else:
     with col2:
         st.dataframe(age_counts, use_container_width=True)
 
-    # ➕ Add Age Distribution Histogram
+    
     st.markdown("### 📊 Distribution of Age (Days) Among Mortalities")
     fig_hist = px.histogram(
         deaths_df,
@@ -129,9 +122,7 @@ else:
 
 st.markdown("---")
 
-# --------------------------------------------------
-# 📈 Month-to-Month Admissions Trend by Diagnosis
-# --------------------------------------------------
+
 st.subheader("📈 Month-to-Month Admissions Trend by Diagnosis")
 if "month" in df.columns and "primary_diagnosis" in df.columns:
     monthly_diag = (
@@ -140,7 +131,7 @@ if "month" in df.columns and "primary_diagnosis" in df.columns:
         .reset_index(name="Admissions")
     )
 
-    # Sort by chronological order if possible
+    
     try:
         monthly_diag["month_sort"] = pd.to_datetime(monthly_diag["month"], errors="coerce")
         monthly_diag = monthly_diag.sort_values("month_sort")
