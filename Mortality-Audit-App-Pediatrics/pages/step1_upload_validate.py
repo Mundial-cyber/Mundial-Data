@@ -5,9 +5,7 @@ import plotly.express as px
 from io import BytesIO
 from datetime import datetime
 
-# -----------------------------
-# PAGE CONFIG & TITLE
-# -----------------------------
+
 st.set_page_config("Mortality Audit : Upload and Validate", layout="wide")
 st.title("Mortality Audit - Upload and Validate Data")
 st.markdown(
@@ -26,9 +24,7 @@ and extracts the timeframe options. Use the sample CSV to format your data if ne
 """
 )
 
-# -----------------------------
-# SAMPLE DATA
-# -----------------------------
+
 sample_df = pd.DataFrame([
     {
         "patient_id": "45991",
@@ -72,9 +68,6 @@ def col_exists_any(df, names):
             return n
     return None
 
-# -----------------------------
-# VALIDATION FUNCTION
-# -----------------------------
 def validate_and_normalize(df: pd.DataFrame):
     errors = []
     warnings = []
@@ -86,12 +79,12 @@ def validate_and_normalize(df: pd.DataFrame):
         errors.append("File must contain at least one of the minimal columns: admission_date, outcome, primary_diagnosis")
         return None, errors, warnings, {}, None
 
-    # Parse date columns
+ 
     for c in recognized_date_cols:
         if c in df.columns:
             df[c] = pd.to_datetime(df[c], errors="coerce")
 
-    # Handle age columns
+    
     age_days_col = None
     if "age_days" in df.columns:
         age_days_col = "age_days"
@@ -118,7 +111,7 @@ def validate_and_normalize(df: pd.DataFrame):
     if age_days_col is None:
         warnings.append("No recognizable age columns found (age_days, age_months, age_years)")
 
-    # Normalize sex
+    
     if "sex" in df.columns:
         df["sex_norm"] = df["sex"].astype(str).str.strip().str.upper().replace({"MALE": "M", "FEMALE": "F"})
         df["sex_norm"] = df["sex_norm"].where(df["sex_norm"].isin(["M", "F"]), "Unknown")
@@ -126,7 +119,7 @@ def validate_and_normalize(df: pd.DataFrame):
         df["sex_norm"] = "Unknown"
         warnings.append("No sex column found; created sex_norm = Unknown")
 
-    # Normalize outcome
+    
     if "outcome" in df.columns:
         df["outcome_norm"] = df["outcome"].astype(str).str.strip().str.lower().map(
             lambda x: "Dead" if "dead" in x or x.startswith("d") else ("Alive" if "alive" in x or x.startswith("a") else x.title())
@@ -135,7 +128,7 @@ def validate_and_normalize(df: pd.DataFrame):
         df["outcome_norm"] = pd.NA
         warnings.append("No outcome column found. Please add outcome (Alive/Dead)")
 
-    # Primary diagnosis fallback
+    
     if "primary_diagnosis" not in df.columns:
         alt = col_exists_any(df, ["diagnosis", "dx", "primary_dx"])
         if alt:
@@ -145,7 +138,7 @@ def validate_and_normalize(df: pd.DataFrame):
             df["primary_diagnosis"] = "UNKNOWN"
             warnings.append("No primary_diagnosis found. Filled as UNKNOWN")
 
-    # Month column
+    
     date_for_month = None
     if "admission_date" in df.columns and df["admission_date"].notna().any():
         df["month"] = df["admission_date"].dt.to_period("M")
@@ -160,9 +153,7 @@ def validate_and_normalize(df: pd.DataFrame):
     missing_report = df.isna().sum().to_dict()
     return df, errors, warnings, missing_report, date_for_month
 
-# -----------------------------
-# UI LAYOUT
-# -----------------------------
+
 col1, col2 = st.columns([2, 1])
 
 with col1:
@@ -185,9 +176,7 @@ with col2:
     st.info("Step 1: Upload and validate CSVs before moving to Step 2 for analysis")
     st.write("Minimum fields: admission_date, death_date/discharge_date, outcome, primary_diagnosis, age")
 
-# -----------------------------
-# CURRENT MONTH VALIDATION
-# -----------------------------
+
 if uploaded_current:
     try:
         df_current_raw = pd.read_csv(uploaded_current)
@@ -208,9 +197,7 @@ if uploaded_current:
 else:
     st.warning("⚠️ Please upload the **Current Month CSV**")
 
-# -----------------------------
-# PREVIOUS MONTH VALIDATION
-# -----------------------------
+
 if uploaded_previous:
     try:
         df_prev_raw = pd.read_csv(uploaded_previous)
@@ -228,9 +215,7 @@ if uploaded_previous:
     except Exception as e:
         st.error(f"Error reading previous month file: {e}")
 
-# -----------------------------
-# FOOTER INFO
-# -----------------------------
+
 if "df_current" in st.session_state:
     st.markdown("---")
     st.success("✅ Data stored in session. Proceed to Step 2: Analysis & Visualization")
